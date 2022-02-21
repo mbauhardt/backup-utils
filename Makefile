@@ -3,11 +3,11 @@ XDG_CONFIG_DIR ?= ${HOME}/.config
 
 install:
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f incremental-rsync ${DESTDIR}${PREFIX}/bin
+	cp -f yesterday ${DESTDIR}${PREFIX}/bin
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/incremental-rsync
+	rm -f ${DESTDIR}${PREFIX}/bin/yesterday
 
 configure:
-	mkdir -p ${XDG_CONFIG_DIR}/rbackup
-	cp daily.conf ${XDG_CONFIG_DIR}/rbackup/
+	mkdir -p ${XDG_CONFIG_DIR}/yesterday
+	cp user.conf ${XDG_CONFIG_DIR}/yesterday/
