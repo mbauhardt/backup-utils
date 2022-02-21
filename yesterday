@@ -1,0 +1,45 @@
+#!/bin/sh
+
+daily_args() {
+  [ -r $XDG_CONFIG_HOME/rbackup/daily.conf ] && . $XDG_CONFIG_HOME/rbackup/daily.conf
+}
+
+validate_args() {
+  [ -n "$__SOURCE" -a -n "$__DEST" ]
+}
+
+name_of_prev() {
+  [ -L "$__DEST/__prev" ] && readlink "$__DEST/__prev"
+}
+
+do_daily_backup() {
+  echo "Starting daily backup: $__SOURCE -> $__DEST/$__LABEL"
+  mkdir -p $__DEST
+  if [ -d "$__DEST/__prev/" ]
+  then
+    echo prev
+    rsync -aR --delete --link-dest="$__DEST/__prev/" $__SOURCE "$__DEST/$__LABEL"
+  else
+    rsync -aR                                        $__SOURCE "$__DEST/$__LABEL"
+  fi
+  rm -f "$__DEST/__prev"
+  ln -s "$__LABEL" "$__DEST/__prev"
+}
+
+daily_args
+validate_args
+validate_args_status=$?
+
+if $(exit $validate_args_status)
+then
+  __DEST="$__DEST/daily"
+  __LABEL=$(date +%A)
+  __NAME_OF_PREV=$(name_of_prev)
+  if [ "$__LABEL" != "$__NAME_OF_PREV" ]
+  then
+    do_daily_backup
+  else
+    echo "Skipping backup for today."
+  fi
+fi
+
