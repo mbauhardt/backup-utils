@@ -10,4 +10,4 @@ uninstall:
 
 configure:
 	mkdir -p ${XDG_CONFIG_DIR}/yesterday
-	cp user.conf ${XDG_CONFIG_DIR}/yesterday/
+	cp user.conf ${XDG_CONFIG_DIR}/yesterday/conf

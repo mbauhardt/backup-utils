@@ -1,45 +1,49 @@
 #!/bin/sh
 
-daily_args() {
+config() {
   [ -r $XDG_CONFIG_HOME/yesterday/conf ] && . $XDG_CONFIG_HOME/yesterday/conf
 }
 
-validate_args() {
+validate_config() {
   [ -n "$__SOURCE" -a -n "$__DEST" ]
 }
 
 name_of_prev() {
-  [ -L "$__DEST/__prev" ] && readlink "$__DEST/__prev"
+  [ -L "$1/__prev" ] && readlink "$1/__prev"
 }
 
-do_daily_backup() {
-  echo "Starting daily backup: $__SOURCE -> $__DEST/$__LABEL"
-  mkdir -p $__DEST
-  if [ -d "$__DEST/__prev/" ]
+do_backup() {
+  echo "Starting daily backup: $1 -> $2/$3"
+  mkdir -p $2
+  if [ -d "$2/__prev/" ]
   then
-    echo prev
-    rsync -aR --delete --link-dest="$__DEST/__prev/" $__SOURCE "$__DEST/$__LABEL"
+    rsync -aR --delete --link-dest="$2/__prev/" $1 "$2/$3"
   else
-    rsync -aR                                        $__SOURCE "$__DEST/$__LABEL"
+    rsync -aR                                   $1 "$2/$3"
   fi
-  rm -f "$__DEST/__prev"
-  ln -s "$__LABEL" "$__DEST/__prev"
+  rm -f "$2/__prev"
+  ln -s "$3" "$2/__prev"
 }
 
-daily_args
-validate_args
-validate_args_status=$?
+config
+validate_config
+validate_config_status=$?
 
-if $(exit $validate_args_status)
+if ! $(exit $validate_config_status)
 then
-  __DEST="$__DEST/daily"
-  __LABEL=$(date +%A)
-  __NAME_OF_PREV=$(name_of_prev)
-  if [ "$__LABEL" != "$__NAME_OF_PREV" ]
-  then
-    do_daily_backup
-  else
-    echo "Skipping backup for today."
-  fi
+  echo "Looks like your configuration is misleading. Visit https://github.com/mbauhardt/yesterday for details."
+  exit $validate_config_status
+fi
+
+
+__DAILY__DEST="$__DEST/daily"
+__DAILY__LABEL=$(date +%A)
+__DAILY__PREV__RUN=$(name_of_prev "$__DAILY__DEST")
+
+if [ "$__DAILY__LABEL" != "$__DAILY__PREV__RUN" ]
+then
+  do_backup "$__SOURCE" "$__DAILY__DEST" "$__DAILY__LABEL"
+else
+  echo "Skipping daily backup."
 fi
 
