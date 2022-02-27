@@ -1,0 +1,36 @@
+#!/bin/sh
+
+do_snapshot_create() {
+  lvcreate -L 15G -s -n home-lv-snapshot void-vg/home-lv
+}
+
+
+do_notify_snapshot_success() {
+  notify-send "Snapshot Success" "Your Snapshot has been created successfully"
+}
+
+do_notify_snapshot_failure() {
+  notify-send "Snapshot Failure" "Your Snapshot has not been created"
+}
+
+do_snapshot_remove() {
+  lvremove -y void-vg/home-lv-snapshot
+}
+
+
+do_snapshot_create
+do_snapshot_create_status=$?
+
+if ! $(exit $do_snapshot_create_status)
+then
+  do_notify_snapshot_failure
+  exit $do_snapshot_create_status
+fi
+
+do_notify_snapshot_success
+
+echo "doing backup...."
+sleep 10
+
+do_snapshot_remove
+
