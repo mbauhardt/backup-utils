@@ -1,0 +1,17 @@
+#!/bin/sh
+
+current_level() {
+  xfsdump -I depth=2,mobjlabel="sda",mnt="void:/mnt/snapshot" | grep "level:" | tail -n1 | awk '{ print $2 }'
+}
+
+next_level() {
+  level=$(current_level)
+  if [ -n "$level" ]
+  then
+    echo $level | awk '{ print $1 < 9 ? $1 + 1 : 0 }'
+  else
+    echo 0
+  fi
+}
+
+next_level
