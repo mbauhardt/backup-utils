@@ -1,0 +1,17 @@
+#!/bin/sh
+
+validate_mount_points() {
+  grep -qs '/mnt/backup ' /proc/mounts && grep -qs '/mnt/snapshot ' /proc/mounts
+}
+
+validate_mount_points
+validate_mount_status=$?
+
+if $(exit $validate_mount_status)
+then
+  echo "It's mounted."
+  sudo xfsdump -e -l 0 -L "daily session" -f /mnt/backup/yesterday/daily/day.0/home.xfs /mnt/snapshot
+else
+  echo "It's not mounted."
+fi
+
