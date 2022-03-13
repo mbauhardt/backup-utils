@@ -1,0 +1,52 @@
+#!/bin/fish
+
+function current_level
+  xfsdump -I depth=2,mobjlabel="sda",mnt="void:/mnt/snapshot" | grep "level:" | tail -n1 | awk '{ print $2 }'
+end
+
+function next_level
+  set level (current_level)
+  if test -n "$level"
+    echo $level | awk '{ print $1 < 9 ? $1 + 1 : 0 }'
+  else
+    echo 0
+  end
+end
+
+function last_dump_in_days
+  set last_run (xfsdump -I depth=2,mobjlabel="sda",mnt="void:/mnt/snapshot" | grep "time:" | tail -n1 | awk -F"time:" '{print $2}' | xargs)
+  set diff_in_sec (expr (date --date="(date)" +%s) - (date --date="$last_run" +%s))
+  expr $diff_in_sec / 86400
+end
+
+function time_for_dump
+  test (last_dump_in_days) -gt 1
+end
+
+function print_usage
+  echo "Usage"
+end
+
+if test (count $argv) -eq 0
+  print_usage
+  exit 0
+end
+
+argparse --name=yinvent 'h/help' 'c/current' 'n/next' 'd/days' 't/time' -- $argv
+if not test $status -eq 0
+  exit 1
+end
+
+if test (count $_flag_h) -eq 1
+  print_usage
+else if test (count $_flag_c) -eq 1
+  current_level
+else if test (count $_flag_n) -eq 1
+  next_level
+else if test (count $_flag_d) -eq 1
+  last_dump_in_days
+else if test (count $_flag_t) -eq 1
+  time_for_dump
+  exit $status
+end
+

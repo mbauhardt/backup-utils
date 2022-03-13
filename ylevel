@@ -24,5 +24,8 @@ time_for_dump() {
   [ $(last_dump_in_days) -gt 1 ]
 }
 
+current_level
+next_level
+last_dump_in_days
 time_for_dump
 
