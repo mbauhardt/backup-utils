@@ -1,0 +1,63 @@
+#!/bin/fish
+
+function do_snapshot_create
+  lvcreate -L 15G -s -n home-lv-snapshot void-vg/home-lv
+end
+
+function do_notify_snapshot_success
+  echo "Snapshot Success, your snapshot has been created successfully"
+end
+
+function do_notify_snapshot_failure
+  echo "Snapshot Failure, your snapshot has not been created"
+end
+
+function do_snapshot_remove
+  lvremove -y void-vg/home-lv-snapshot
+end
+
+function print_usage
+  echo 'Usage'
+end
+
+function do_mount_snapshot
+  mount /dev/void-vg/home-lv-snapshot /mnt/snapshot -onouuid,ro
+end
+
+function do_umount_snapshot
+  umount /mnt/snapshot
+end
+
+if test (count $argv) -eq 0
+  print_usage
+  exit 0
+end
+
+argparse --name=ysnap 'h/help' 'c/create' 'r/remove' 'm/mount' 'u/umount' -- $argv
+if not test $status -eq 0
+  exit 1
+end
+
+if test (count $_flag_h) -eq 1
+  print_usage
+else if test (count $_flag_c) -eq 1
+  do_snapshot_create
+  and do_notify_snapshot_success
+  or do_notify_snapshot_failure
+else if test (count $_flag_r) -eq 1
+  do_snapshot_remove
+  and echo "Snapshot successful removed"
+  or echo "Snapshot not removed"
+else if test (count $_flag_m) -eq 1
+  do_mount_snapshot
+  and echo "Snapshot successful mounted"
+  or echo "Snapshot not mounted"
+else if test (count $_flag_u) -eq 1
+  do_umount_snapshot
+  and echo "Snapshot successful unmounted"
+  or echo "Snapshot not unmounted"
+end
+
+
+
+
