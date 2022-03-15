@@ -1,17 +1,20 @@
-#!/bin/sh
+#!/bin/fish
 
-validate_mount_points() {
-  grep -qs '/mnt/backup ' /proc/mounts && grep -qs '/mnt/snapshot ' /proc/mounts
-}
+function validate_mount_points
+  grep -qs '/mnt/backup ' /proc/mounts && grep -qs '/mnt/snapshots/daily ' /proc/mounts
+end
 
 validate_mount_points
-validate_mount_status=$?
+set validate_mount_status $status
 
-if $(exit $validate_mount_status)
-then
-  echo "It's mounted."
-  sudo xfsdump -e -l 0 -L "daily session" -f /mnt/backup/yesterday/daily/day.0/home.xfs /mnt/snapshot
-else
-  echo "It's not mounted."
-fi
+
+if not test $validate_mount_status -eq 0
+  echo "Mount points doesn't exist."
+  exit $validate_mount_status
+end
+
+set level (yinvent -n)
+echo $level
+
+xfsdump -e -l $level -L "yesterday.daily.session.$level" -M "sda1" -f /mnt/backup/yesterday/daily/day.$level/home.xfs /mnt/snapshots/daily
 
