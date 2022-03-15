@@ -1,7 +1,7 @@
 #!/bin/fish
 
 function validate_mount_points
-  grep -qs '/mnt/backup ' /proc/mounts && grep -qs '/mnt/snapshots/daily ' /proc/mounts
+  grep -qs '/mnt/backup ' /proc/mounts && grep -qs '/mnt/snapshots/home ' /proc/mounts
 end
 
 validate_mount_points
@@ -16,5 +16,5 @@ end
 set level (yinvent -n)
 echo $level
 
-xfsdump -e -l $level -L "yesterday.daily.session.$level" -M "sda1" -f /mnt/backup/yesterday/daily/day.$level/home.xfs /mnt/snapshots/daily
+xfsdump -e -l $level -L "yesterday.daily.session.$level" -M "sda1" -f /mnt/backup/yesterday/daily/day.$level/home.xfs /mnt/snapshots/home
 
