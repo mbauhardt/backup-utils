@@ -16,5 +16,5 @@ end
 set level (yinvent -n)
 echo $level
 
-xfsdump -e -l $level -L "yesterday.daily.session.$level" -M "sda1" -f /mnt/backup/yesterday/daily/day.$level/home.xfs /mnt/snapshots/home
+xfsdump -e -l $level -L "yesterday.daily.home-session.$level" -M "sda" -f /mnt/backup/yesterday/daily/day.$level/home.xfs /mnt/snapshots/home
 
