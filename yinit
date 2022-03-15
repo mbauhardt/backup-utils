@@ -1,9 +1,10 @@
-#!/bin/sh
+#!/bin/fish
 
-init_folder_structure() {
-  for i in $(seq 0 9)
-  do
-    mkdir -p /tmp/mnt/backup/yesterday/daily/day.$i
-  done
-}
+function init_folder_structure
+  for i in (seq 0 9)
+    mkdir -p /mnt/backup/yesterday/daily/day.$i
+  end
+end
+
+init_folder_structure
 

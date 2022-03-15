@@ -21,11 +21,11 @@ function print_usage
 end
 
 function do_mount_snapshot
-  mount /dev/void-vg/home-lv-snapshot /mnt/snapshot -onouuid,ro
+  mount /dev/void-vg/home-lv-snapshot /mnt/snapshots/daily -onouuid,ro
 end
 
 function do_umount_snapshot
-  umount /mnt/snapshot
+  umount /mnt/snapshots/daily
 end
 
 if test (count $argv) -eq 0
