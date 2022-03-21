@@ -13,8 +13,16 @@ if not test $validate_mount_status -eq 0
   exit $validate_mount_status
 end
 
-set level (yinvent -n)
-echo $level
+yinvent -t
+if not test $status
+  echo "No time for backups"
+  exit 1
+end
 
-xfsdump -e -l $level -L "yesterday.daily.home-session.$level" -M "sda" -f /mnt/backup/yesterday/daily/day.$level/home.xfs /mnt/snapshots/home
+set level (yinvent -n)
+set mlabel (yinvent -m)
+set path (yinvent -p)
+
+mkdir -p $path
+xfsdump -e -l $level -L "home.$mlabel.$level" -M "home.$mlabel" -f $path/home.$level.xfs /mnt/snapshots/home
 
