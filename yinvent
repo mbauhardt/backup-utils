@@ -1,26 +1,50 @@
 #!/bin/fish
 
+function count_level
+  xfsdump -I depth=2,mobjlabel=(current_label),mnt="void:/mnt/snapshots/home" | grep "level:" | wc -l
+end
+
 function current_level
-  xfsdump -I depth=2,mobjlabel="sda",mnt="void:/mnt/snapshots/home" | grep "level:" | tail -n1 | awk '{ print $2 }'
+  if test (count_level) -gt 0
+    xfsdump -I depth=2,mobjlabel=(current_label),mnt="void:/mnt/snapshots/home" | grep "level:" | tail -n1 | awk '{ print $2 }'
+  else
+    false
+    return
+  end
 end
 
 function next_level
-  set level (current_level)
-  if test -n "$level"
-    echo $level | awk '{ print $1 < 9 ? $1 + 1 : 0 }'
+  if test (count_level) -gt 0
+    current_level | awk '{ print $1 < 9 ? $1 + 1 : 0 }'
   else
     echo 0
   end
 end
 
 function last_dump_in_days
-  set last_run (xfsdump -I depth=2,mobjlabel="sda",mnt="void:/mnt/snapshots/home" | grep "time:" | tail -n1 | awk -F"time:" '{print $2}' | xargs)
-  set diff_in_sec (expr (date --date="(date)" +%s) - (date --date="$last_run" +%s))
-  expr $diff_in_sec / 86400
+  if test (count_level) -gt 0
+    set last_run (xfsdump -I depth=2,mobjlabel=(current_label),mnt="void:/mnt/snapshots/home" | grep "time:" | tail -n1 | awk -F"time:" '{print $2}' | xargs)
+    set diff_in_sec (expr (date --date="(date)" +%s) - (date --date="$last_run" +%s))
+    expr $diff_in_sec / 86400
+  else
+    false
+    return
+  end
+end
+
+function current_label
+  date +%b
 end
 
 function time_for_dump
-  test (last_dump_in_days) -gt 1
+  if test (count_level) -eq 0
+    return
+  end
+  test current_level -lt 9 -a last_dump_in_days -gt 2
+end
+
+function dump_path
+  echo "/mnt/backup/yesterday/"(current_label)
 end
 
 function print_usage
@@ -32,21 +56,28 @@ if test (count $argv) -eq 0
   exit 0
 end
 
-argparse --name=yinvent 'h/help' 'c/current' 'n/next' 'd/days' 't/time' -- $argv
+argparse --name=yinvent 'h/help' 'c/count' 'l/level' 'n/next' 'm/medialabel' 'd/days' 't/time' 'p/path' -- $argv
 if not test $status -eq 0
   exit 1
 end
 
+
 if test (count $_flag_h) -eq 1
   print_usage
 else if test (count $_flag_c) -eq 1
+  count_level
+else if test (count $_flag_l) -eq 1
   current_level
 else if test (count $_flag_n) -eq 1
   next_level
+else if test (count $_flag_m) -eq 1
+  current_label
 else if test (count $_flag_d) -eq 1
   last_dump_in_days
 else if test (count $_flag_t) -eq 1
   time_for_dump
   exit $status
+else if test (count $_flag_p) -eq 1
+  dump_path
 end
 
