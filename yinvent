@@ -1,12 +1,12 @@
 #!/bin/fish
 
 function count_level
-  xfsdump -I depth=2,mobjlabel=(current_label),mnt="void:/mnt/snapshots/home" | grep "level:" | wc -l
+  xfsdump -I depth=2,mobjlabel=home.(current_label),mnt="void:/mnt/snapshots/home" | grep "level:" | wc -l
 end
 
 function current_level
   if test (count_level) -gt 0
-    xfsdump -I depth=2,mobjlabel=(current_label),mnt="void:/mnt/snapshots/home" | grep "level:" | tail -n1 | awk '{ print $2 }'
+    xfsdump -I depth=2,mobjlabel=home.(current_label),mnt="void:/mnt/snapshots/home" | grep "level:" | tail -n1 | awk '{ print $2 }'
   else
     false
     return
@@ -23,9 +23,9 @@ end
 
 function last_dump_in_days
   if test (count_level) -gt 0
-    set last_run (xfsdump -I depth=2,mobjlabel=(current_label),mnt="void:/mnt/snapshots/home" | grep "time:" | tail -n1 | awk -F"time:" '{print $2}' | xargs)
-    set diff_in_sec (expr (date --date="(date)" +%s) - (date --date="$last_run" +%s))
-    expr $diff_in_sec / 86400
+    set last_run (xfsdump -I depth=2,mobjlabel=home.(current_label),mnt="void:/mnt/snapshots/home" | grep "time:" | tail -n1 | awk -F"time:" '{print $2}' | xargs)
+    set diff_in_sec (math (date --date="(date)" +%s) - (date --date="$last_run" +%s))
+    math $diff_in_sec / 86400
   else
     false
     return
@@ -37,10 +37,13 @@ function current_label
 end
 
 function time_for_dump
-  if test (count_level) -eq 0
+  if test (count_level) -gt 0
+    current_level -lt 9 -a last_dump_in_days -gt 2
+    return
+  else
+    true
     return
   end
-  test current_level -lt 9 -a last_dump_in_days -gt 2
 end
 
 function dump_path
