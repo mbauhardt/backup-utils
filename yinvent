@@ -38,7 +38,7 @@ end
 
 function time_for_dump
   if test (count_level) -gt 0
-    current_level -lt 9 -a last_dump_in_days -gt 2
+    test \( (current_level) -lt 9 \) -a \( (last_dump_in_days) -gt 2 \)
     return
   else
     true
